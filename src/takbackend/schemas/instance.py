@@ -13,7 +13,7 @@ from .pager import PagerBase
 LOGGER = logging.getLogger(__name__)
 
 
-class InstanceCreate(CreateBase):
+class TAKInstanceCreate(CreateBase):
     """Create TAKInstance objects"""
 
     ownerid: str = Field(description="Who owns this, usually should point to 'userid' in JWT")
@@ -22,7 +22,7 @@ class InstanceCreate(CreateBase):
     server_name: str = Field(description="TAK-Server name shown to clients")
 
 
-class DBInstance(InstanceCreate, DBBase):
+class TAKDBInstance(TAKInstanceCreate, DBBase):
     """Display/update TAKInstance objects"""
 
     tfcompleted: Optional[datetime.datetime] = Field(
@@ -38,7 +38,7 @@ class DBInstance(InstanceCreate, DBBase):
     )
 
 
-class InstancePager(PagerBase):
+class TAKInstancePager(PagerBase):
     """List instances (paginated)"""
 
-    items: Sequence[DBInstance] = Field(default_factory=list, description="The instances on this page")
+    items: Sequence[TAKDBInstance] = Field(default_factory=list, description="The instances on this page")
