@@ -29,10 +29,10 @@ async def create_instance(request: Request, pdinstance: InstanceCreate) -> DBIns
     """Create a new TAKInstance"""
     check_acl(request.state.jwt, "fi.pvarki.takbackend.instance:create")
     data = pdinstance.dict()
-    friendly_name = data.pop("friendly_name")
+    server_name = data.pop("server_name")
     takinstance = TAKInstance(**data)
     takinstance.tfinputs = {
-        "friendly_name": friendly_name,
+        "server_name": server_name,
     }
     # pylint: disable=invalid-name
     if not takinstance.pk:
@@ -53,7 +53,7 @@ async def create_instance(request: Request, pdinstance: InstanceCreate) -> DBIns
         refresh.tfinputs = None
         refresh.tfoutputs = None
     pdinstsrc = refresh.to_dict()
-    pdinstsrc["friendly_name"] = refresh.tfinputs.get("friendly_name", None)
+    pdinstsrc["server_name"] = refresh.tfinputs.get("server_name", None)
     return DBInstance.parse_obj(pdinstsrc)
 
 
@@ -73,7 +73,7 @@ async def list_instances(request: Request) -> InstancePager:
     pdinstances: List[DBInstance] = []
     for instance in instances:
         pdinstsrc = instance.to_dict()
-        pdinstsrc["friendly_name"] = instance.tfinputs.get("friendly_name", None)
+        pdinstsrc["server_name"] = instance.tfinputs.get("server_name", None)
         pdinst = DBInstance.parse_obj(pdinstsrc)
         pdinst.tfoutputs = None
         pdinst.tfinputs = None
@@ -96,12 +96,12 @@ async def get_instance(request: Request, pkstr: str) -> DBInstance:
             raise HTTPException(status_code=403, detail="Required privilege not granted.")
 
     retsrc = instance.to_dict()
-    retsrc["friendly_name"] = instance.tfinputs.get("friendly_name", None)
+    retsrc["server_name"] = instance.tfinputs.get("server_name", None)
     ret = DBInstance.parse_obj(retsrc)
     if not check_acl(request.state.jwt, "fi.pvarki.takbackend.tfdata:read", auto_error=False):
         ret.tfinputs = None
         ret.tfoutputs = None
-    ret.friendly_name = instance.tfinputs.get("friendly_name", None)
+    ret.server_name = instance.tfinputs.get("server_name", None)
     if instance.tfcompleted or instance.tfoutputs:
         ret.enduser_instructions = request.url_for("enduser_instructions", pkstr=str(instance.pk))
 

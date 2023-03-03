@@ -19,7 +19,7 @@ class InstanceCreate(CreateBase):
     ownerid: str = Field(description="Who owns this, usually should point to 'userid' in JWT")
     color: str = Field(description="Color of this deployment, HTML 6-character RGB code #rrggbb, no alpha")
     grouping: str = Field(description="Arbitrary string to group deployments by", default="_")
-    friendly_name: str = Field(description="TAK-Server name shown to clients")
+    server_name: str = Field(description="TAK-Server name shown to clients")
 
 
 class DBInstance(InstanceCreate, DBBase):
