@@ -1,5 +1,5 @@
 ==========
-pttbackend
+takbackend
 ==========
 
 Keeps track of mumble instances ordered by people in different contexts
@@ -13,7 +13,7 @@ make sure our software works under docker.
 
 It's also a quick way to get started with a standard development environment::
 
-    docker-compose -p pttbackend -f docker-compose_local.yml -f docker-compose_local_reload.yml up
+    docker-compose -p takbackend -f docker-compose_local.yml -f docker-compose_local_reload.yml up
 
 Note that you need jwt.pub from the a11napi instance you're using to get your auth tokens (/api/v1/tokens/pubkey)
 
@@ -40,22 +40,22 @@ Creating a development container
 
 Build image, create container and start it::
 
-    docker build --ssh default --target devel_shell -t pttbackend:devel_shell .
-    docker create --name pttbackend_devel -v `pwd`":/app" -it `echo $DOCKER_SSHAGENT` pttbackend:devel_shell
-    docker start -i pttbackend_devel
+    docker build --ssh default --target devel_shell -t takbackend:devel_shell .
+    docker create --name takbackend_devel -v `pwd`":/app" -it `echo $DOCKER_SSHAGENT` takbackend:devel_shell
+    docker start -i takbackend_devel
 
 pre-commit considerations
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If working in Docker instead of native env you need to run the pre-commit checks in docker too::
 
-    docker exec -i pttbackend_devel /bin/bash -c "pre-commit install"
-    docker exec -i pttbackend_devel /bin/bash -c "pre-commit run --all-files"
+    docker exec -i takbackend_devel /bin/bash -c "pre-commit install"
+    docker exec -i takbackend_devel /bin/bash -c "pre-commit run --all-files"
 
 You need to have the container running, see above. Or alternatively use the docker run syntax but using
 the running container is faster::
 
-    docker run --rm -it -v `pwd`":/app" pttbackend:devel_shell -c "pre-commit run --all-files"
+    docker run --rm -it -v `pwd`":/app" takbackend:devel_shell -c "pre-commit run --all-files"
 
 Test suite
 ^^^^^^^^^^
@@ -63,8 +63,8 @@ Test suite
 You can use the devel shell to run py.test when doing development, for CI use
 the "tox" target in the Dockerfile::
 
-    docker build --ssh default --target tox -t pttbackend:tox .
-    docker run --rm -it -v `pwd`":/app" `echo $DOCKER_SSHAGENT` pttbackend:tox
+    docker build --ssh default --target tox -t takbackend:tox .
+    docker run --rm -it -v `pwd`":/app" `echo $DOCKER_SSHAGENT` takbackend:tox
 
 Production docker
 ^^^^^^^^^^^^^^^^^
@@ -72,8 +72,8 @@ Production docker
 There's a "production" target as well for running the application, remember to change that
 architecture tag to arm64 if building on ARM::
 
-    docker build --ssh default --target production -t pttbackend:amd64-latest .
-    docker run -it --name pttbackend pttbackend:amd64-latest
+    docker build --ssh default --target production -t takbackend:amd64-latest .
+    docker run -it --name takbackend takbackend:amd64-latest
 
 Development
 -----------

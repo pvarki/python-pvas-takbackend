@@ -14,16 +14,16 @@ LOGGER = logging.getLogger(__name__)
 
 
 class InstanceCreate(CreateBase):
-    """Create PTTInstance objects"""
+    """Create TAKInstance objects"""
 
     ownerid: str = Field(description="Who owns this, usually should point to 'userid' in JWT")
     color: str = Field(description="Color of this deployment, HTML 6-character RGB code #rrggbb, no alpha")
     grouping: str = Field(description="Arbitrary string to group deployments by", default="_")
-    max_users: int = Field(description="How many max users will the instance be created for", default=500)
+    friendly_name: str = Field(description="TAK-Server name shown to clients")
 
 
 class DBInstance(InstanceCreate, DBBase):
-    """Display/update PTTInstance objects"""
+    """Display/update TAKInstance objects"""
 
     tfcompleted: Optional[datetime.datetime] = Field(
         description="When was the TerraForm pipeline completed", nullable=True, default=None

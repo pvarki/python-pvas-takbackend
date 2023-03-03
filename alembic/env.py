@@ -6,8 +6,8 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from pttbackend import dbconfig
-from pttbackend.models.base import db
+from takbackend import dbconfig
+from takbackend.models.base import db
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

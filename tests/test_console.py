@@ -4,13 +4,13 @@ import asyncio
 import pytest
 from libadvian.binpackers import ensure_str
 
-from pttbackend import __version__
+from takbackend import __version__
 
 
 @pytest.mark.asyncio
 async def test_version_cli():  # type: ignore
     """Test the CLI parsing for default version dumping works"""
-    cmd = "pttbackend --version"
+    cmd = "takbackend --version"
     process = await asyncio.create_subprocess_shell(
         cmd,
         stdout=asyncio.subprocess.PIPE,

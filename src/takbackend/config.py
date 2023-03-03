@@ -17,14 +17,14 @@ PIPELINE_TOKEN_KEYVAULT: str = cfg("PIPELINE_TOKEN_KEYVAULT", default="pvarki-sh
 PIPELINE_TOKEN_SECRETNAME: str = cfg("PIPELINE_TOKEN_SECRETNAME", default="base64encodedsecret")
 PIPELINE_SSHKEY_SECRETNAME: str = cfg("PIPELINE_SSHKEY_SECRETNAME", default="sshkeypub")
 INSTRUCTIONS_URL: str = cfg(
-    "INSTRUCTIONS_URL", default="https://arkipublic.blob.core.windows.net/ohjeet/Kayttoohje-Mumble.pdf"
+    "INSTRUCTIONS_URL", default="https://arkipublic.blob.core.windows.net/ohjeet/Kayttoohje_TAK.pdf"
 )
 TAKORTTI_URL: str = cfg(
-    "TAKORTTI_URL", default="https://arkipublic.blob.core.windows.net/ohjeet/Taisteluajatuskortti_Mumble.pdf"
+    "TAKORTTI_URL", default="https://arkipublic.blob.core.windows.net/ohjeet/Taisteluajatuskortti_TAK.pdf"
 )
 DOCTEMPLATE_URL: str = cfg(
     "DOCTEMPLATE_URL",
-    default="https://arkipublic.blob.core.windows.net/dokumentointi/F02_PVARKI-tuotteen_dokumentointi_MUMBLE.zip",
+    default="https://arkipublic.blob.core.windows.net/dokumentointi/F02_PVARKI-tuotteen_dokumentointi_TAK.zip",
 )
 PIPELINE_SSHKEY_OVERRIDE: Optional[str] = cfg("PIPELINE_SSHKEY_OVERRIDE", default=None)
 PIPELINE_TOKEN_OVERRIDE: Optional[str] = cfg("PIPELINE_TOKEN_OVERRIDE", default=None)

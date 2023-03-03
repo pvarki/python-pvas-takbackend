@@ -15,7 +15,7 @@ DBModel: Any = db.Model  # workaround mypy being unhappy about using @property a
 class BaseModel(DBModel):  # pylint: disable=R0903
     """Baseclass with common fields"""
 
-    __table_args__ = {"schema": "pttbackend"}
+    __table_args__ = {"schema": "takbackend"}
 
     pk = sa.Column(saUUID(), primary_key=True, default=uuid.uuid4)
     created = sa.Column(sa.DateTime(timezone=True), default=utcnow, nullable=False)

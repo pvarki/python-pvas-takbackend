@@ -1,4 +1,4 @@
-"""CLI entrypoints for pttbackend"""
+"""CLI entrypoints for takbackend"""
 from typing import Any
 import logging
 import asyncio
@@ -7,8 +7,8 @@ import click
 
 from libadvian.logging import init_logging
 
-from pttbackend import __version__, dbconfig, models
-from pttbackend.dbdevhelpers import create_all, drop_all
+from takbackend import __version__, dbconfig, models
+from takbackend.dbdevhelpers import create_all, drop_all
 
 
 LOGGER = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ def drop_tables() -> None:
     asyncio.get_event_loop().run_until_complete(runner())
 
 
-def pttbackend_cli() -> None:
+def takbackend_cli() -> None:
     """models cli for quick and dirty devel ops, use alembic for actual migrations"""
     init_logging(logging.WARNING)
     LOGGER.setLevel(logging.WARNING)

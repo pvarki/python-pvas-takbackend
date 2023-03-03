@@ -5,7 +5,7 @@ import logging
 
 import aiohttp
 
-from .models import PTTInstance
+from .models import TAKInstance
 from .security import PipelineTokens
 from .config import PIPELINE_REF, PIPELINE_URL, PIPELINE_SUPPRESS
 
@@ -22,7 +22,7 @@ class PipeLineClient:
         headers = {"Authorization": f"Basic {PipelineTokens.singleton().bearer}"}
         return headers
 
-    async def create(self, for_instance: PTTInstance, callback_url: str) -> None:
+    async def create(self, for_instance: TAKInstance, callback_url: str) -> None:
         """Call pipeline to spin up a new service"""
         post_data: Dict[str, Any] = {
             "resources": {
@@ -64,7 +64,7 @@ class PipeLineClient:
                 json_body = await resp.json()
                 LOGGER.debug("Got response {}".format(json_body))
 
-    async def delete(self, from_instance: PTTInstance) -> None:
+    async def delete(self, from_instance: TAKInstance) -> None:
         """Call pipeline to spin down existing service"""
         post_data = {
             "resources": {

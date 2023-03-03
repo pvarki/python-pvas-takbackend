@@ -1,14 +1,14 @@
-"""ptt server instance book-keeping"""
+"""tak server instance book-keeping"""
 from sqlalchemy.dialects.postgresql import JSONB
 import sqlalchemy as sa
 
 from .base import BaseModel
 
 
-class PTTInstance(BaseModel):  # pylint: disable=R0903
-    """Instance of PTT server"""
+class TAKInstance(BaseModel):  # pylint: disable=R0903
+    """Instance of TAK server"""
 
-    __tablename__ = "pttinstances"
+    __tablename__ = "takinstances"
 
     # usually probably uuids but might not be if a11n backend changed
     ownerid = sa.Column(sa.Unicode(), nullable=False, index=True)

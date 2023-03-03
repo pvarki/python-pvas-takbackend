@@ -5,6 +5,9 @@
 *.pub
 *.key
 
+#sed backups
+*.bup
+
 # ci artefacts
 pytest*.xml
 

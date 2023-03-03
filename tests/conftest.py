@@ -12,9 +12,9 @@ from libadvian.logging import init_logging
 from arkia11nmodels.testhelpers import monkeysession  # pylint: disable=W0611 ; # false positive
 import arkia11napi.security
 
-from pttbackend.api import WRAPPER
-from pttbackend import models
-from pttbackend import config
+from takbackend.api import WRAPPER
+from takbackend import models
+from takbackend import config
 
 # pylint: disable=W0621
 init_logging(logging.DEBUG)
@@ -34,7 +34,7 @@ def dockerdb(docker_ip: str, docker_services: Any, monkeysession: Any) -> Genera
     """start docker container for db"""
     LOGGER.debug("Monkeypatching env")
     _ = docker_services
-    from pttbackend import dbconfig  # pylint: disable=C0415
+    from takbackend import dbconfig  # pylint: disable=C0415
 
     mp_values = {
         "HOST": docker_ip,
