@@ -52,7 +52,9 @@ async def create_instance(request: Request, pdinstance: InstanceCreate) -> DBIns
     if not check_acl(request.state.jwt, "fi.pvarki.takbackend.tfdata:read", auto_error=False):
         refresh.tfinputs = None
         refresh.tfoutputs = None
-    return DBInstance.parse_obj(refresh.to_dict())
+    pdinstsrc = refresh.to_dict()
+    pdinstsrc["friendly_name"] = refresh.tfinputs.get("friendly_name", None)
+    return DBInstance.parse_obj(pdinstsrc)
 
 
 @INSTANCE_ROUTER.get("/api/v1/tak/instances", tags=["tak-instances"], response_model=InstancePager)
@@ -70,10 +72,11 @@ async def list_instances(request: Request) -> InstancePager:
 
     pdinstances: List[DBInstance] = []
     for instance in instances:
-        pdinst = DBInstance.parse_obj(instance.to_dict())
+        pdinstsrc = instance.to_dict()
+        pdinstsrc["friendly_name"] = instance.tfinputs.get("friendly_name", None)
+        pdinst = DBInstance.parse_obj(pdinstsrc)
         pdinst.tfoutputs = None
         pdinst.tfinputs = None
-        pdinst.friendly_name = instance.tfinputs.get("friendly_name", None)
         if instance.tfcompleted or instance.tfoutputs:
             pdinst.enduser_instructions = request.url_for("enduser_instructions", pkstr=str(instance.pk))
         pdinstances.append(pdinst)
@@ -92,7 +95,9 @@ async def get_instance(request: Request, pkstr: str) -> DBInstance:
         if instance.ownerid != request.state.jwt["userid"]:
             raise HTTPException(status_code=403, detail="Required privilege not granted.")
 
-    ret = DBInstance.parse_obj(instance.to_dict())
+    retsrc = instance.to_dict()
+    retsrc["friendly_name"] = instance.tfinputs.get("friendly_name", None)
+    ret = DBInstance.parse_obj(retsrc)
     if not check_acl(request.state.jwt, "fi.pvarki.takbackend.tfdata:read", auto_error=False):
         ret.tfinputs = None
         ret.tfoutputs = None
