@@ -49,12 +49,14 @@ async def create_instance(request: Request, pdinstance: InstanceCreate) -> DBIns
         # Do not leave stuff laying around
         await refresh.delete()
         raise
+
+    retsrc = refresh.to_dict()
+    retsrc["server_name"] = refresh.tfinputs.get("server_name", "unresolved")
+    ret = DBInstance.parse_obj(retsrc)
     if not check_acl(request.state.jwt, "fi.pvarki.takbackend.tfdata:read", auto_error=False):
-        refresh.tfinputs = None
-        refresh.tfoutputs = None
-    pdinstsrc = refresh.to_dict()
-    pdinstsrc["server_name"] = refresh.tfinputs.get("server_name", None)
-    return DBInstance.parse_obj(pdinstsrc)
+        ret.tfinputs = None
+        ret.tfoutputs = None
+    return ret
 
 
 @INSTANCE_ROUTER.get("/api/v1/tak/instances", tags=["tak-instances"], response_model=InstancePager)
@@ -96,12 +98,11 @@ async def get_instance(request: Request, pkstr: str) -> DBInstance:
             raise HTTPException(status_code=403, detail="Required privilege not granted.")
 
     retsrc = instance.to_dict()
-    retsrc["server_name"] = instance.tfinputs.get("server_name", None)
+    retsrc["server_name"] = instance.tfinputs.get("server_name", "unresolved")
     ret = DBInstance.parse_obj(retsrc)
     if not check_acl(request.state.jwt, "fi.pvarki.takbackend.tfdata:read", auto_error=False):
         ret.tfinputs = None
         ret.tfoutputs = None
-    ret.server_name = instance.tfinputs.get("server_name", None)
     if instance.tfcompleted or instance.tfoutputs:
         ret.enduser_instructions = request.url_for("enduser_instructions", pkstr=str(instance.pk))
 
