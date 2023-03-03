@@ -78,6 +78,7 @@ class PipeLineClient:
                 "SSH_PUBLIC_KEY": PipelineTokens.singleton().ssh_pub,
                 "WORKSPACE_NAME": str(from_instance.pk),
                 "CREATE": False,
+                "SERVER_NAME": "not_actually_used",
             },
         }
         await self.do_post(post_data)
