@@ -1,11 +1,17 @@
 """tak client instances book-keeping"""
+from typing import cast
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID as saUUID
 
-from .base import BaseModel
+from .base import BaseModel, db
 from .instance import TAKInstance
 
+
 DEFAULT_MAX_CLIENTS = 100
+
+
+class MaxclientsError(ValueError):
+    """Specific error for max_clients exceeded"""
 
 
 class ClientSequence(BaseModel):  # pylint: disable=R0903
@@ -19,6 +25,20 @@ class ClientSequence(BaseModel):  # pylint: disable=R0903
     next_client_no = sa.Column(sa.Integer, nullable=False, default=1)
 
     _idx = sa.Index("server_prefix_unique", "server", "prefix", unique=True)
+
+    async def next_client(self) -> "Client":
+        """Atomic creation of next client"""
+        async with db.transaction():
+            refresh = await ClientSequence.query.where(ClientSequence.pk == self.pk).with_for_update().gino.first()
+            if refresh.next_client_no > refresh.max_clients:
+                raise MaxclientsError("max_clients exceeded")
+            zeros_count = len(f"{refresh.max_clients}")
+            name_fmt = f"{refresh.prefix}{refresh.next_client_no:0{zeros_count}}"
+            client = Client(server=self.server, sequence=self.pk, name=name_fmt)
+            await client.create()
+            client_refresh = await Client.get(client.pk)
+            await refresh.update(next_client_no=refresh.next_client_no + 1).apply()
+        return cast(Client, client_refresh)
 
 
 class Client(BaseModel):  # pylint: disable=R0903
