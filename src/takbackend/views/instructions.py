@@ -36,6 +36,6 @@ async def get_instructions(request: Request, pkstr: str) -> Response:
             "instructions_pdf": config.INSTRUCTIONS_URL,
             "taisteluajatus_pdf": config.TAKORTTI_URL,
             "templates_zip": config.DOCTEMPLATE_URL,
-            "dns_name": instance.tfoutputs["dns_name"]["value"],
+            "dns_name": instance.tfoutputs["dns_name"],
         },
     )
