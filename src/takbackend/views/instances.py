@@ -30,6 +30,7 @@ async def create_instance(request: Request, pdinstance: TAKInstanceCreate) -> TA
     check_acl(request.state.jwt, "fi.pvarki.takbackend.instance:create")
     data = pdinstance.dict()
     server_name = data.pop("server_name")
+    del data["sequence_prefix"], data["sequence_max"]
     takinstance = TAKInstance(**data)
     takinstance.tfinputs = {
         "server_name": server_name,
