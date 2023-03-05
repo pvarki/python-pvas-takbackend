@@ -10,6 +10,17 @@ x-dbconfig_env: &dbconfig_env
   DB_PASSWORD: &dbpass pvarkipwd  # pragma: allowlist secret
   DB_PORT: &dbport 58432
 
+# Mailer config (don't ask about some of the key names)
+x-mailconfig_env: &mailconfig_env
+  MAIL_FROM: "testsender@example.com"
+  #SUPPRESS_SEND: 1 # If you need to suppress for a moment
+  MAIL_USERNAME: "" # MUST be set even if not used
+  MAIL_PASSWORD: "" # MUST be set even if not used
+  USE_CREDENTIALS: "0" # Set to 1 if you need user/pass for the server
+  MAIL_PORT: &mailhog_smtp 1125 # MUST be explicitly set anyway, 1025 is MailHog default
+  MAIL_SERVER: "172.17.0.1"
+  MAIL_STARTTLS: "0" # Try to upgrade to TLS
+  MAIL_SSL_TLS: "0" # Force TLS
 
 x-security_env: &security_env
   JWT_PRIVKEY_PATH: "0"
@@ -61,6 +72,7 @@ services:
       target: production
     environment:
       <<: *dbconfig_env
+      <<: *mailconfig_env
       <<: *security_env
     volumes:
       - ./jwt.pub:/app/jwtRS256.pub
@@ -73,6 +85,18 @@ services:
       - 8000
     ports:
       - "8000:8000"
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - target: 1025
+        published: *mailhog_smtp
+        protocol: tcp
+        mode: host
+      - target: 8025
+        published: 8125
+        protocol: tcp
+        mode: host
 
 volumes:
   db_data:
