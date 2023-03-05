@@ -16,6 +16,7 @@ class TAKInstance(BaseModel):  # pylint: disable=R0903
     grouping = sa.Column(sa.Unicode(), nullable=False, default="", index=True)
 
     ready_email = sa.Column(sa.String(), nullable=True)
+    ready_callback_url = sa.Column(sa.String(), nullable=True)
 
     tfcompleted = sa.Column(sa.DateTime(timezone=True), nullable=True)
     tfinputs = sa.Column(JSONB, nullable=False, server_default="{}")
