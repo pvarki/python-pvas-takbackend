@@ -80,7 +80,7 @@ async def list_instances(request: Request) -> TAKInstancePager:
     pdinstances: List[TAKDBInstance] = []
     for instance in instances:
         pdinstsrc = instance.to_dict()
-        pdinstsrc["server_name"] = instance.tfinputs.get("server_name", None)
+        pdinstsrc["server_name"] = instance.tfinputs.get("server_name", "undefined")
         pdinst = TAKDBInstance.parse_obj(pdinstsrc)
         pdinst.tfoutputs = None
         pdinst.tfinputs = None
