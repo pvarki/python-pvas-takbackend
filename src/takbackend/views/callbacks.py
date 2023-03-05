@@ -16,6 +16,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from ..config import (
     TEMPLATES_PATH,
+    INSTRUCTIONS_RECEIVER_EMAIL,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -37,7 +38,7 @@ async def terraform_callback(request: Request, pkstr: str, tfoutputs: Dict[str, 
     mailer = getmailer()
     msg = MessageSchema(
         subject="Order ready",
-        recipients=["paavo.pokkinen@hallatek.com"],
+        recipients=[INSTRUCTIONS_RECEIVER_EMAIL],
         subtype=MessageType.plain,
         body=template.render(url=request.url_for("enduser_instructions", pkstr=str(instance.pk))),
     )
