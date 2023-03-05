@@ -13,7 +13,7 @@ from arkia11napi.security import JWTBearer, check_acl
 
 from ..config import TEMPLATES_PATH
 from ..schemas.instance import TAKDBInstance, TAKInstanceCreate, TAKInstancePager
-from ..models import TAKInstance
+from ..models import TAKInstance, ClientSequence
 from ..pipelineclient import PipeLineClient
 
 
@@ -49,6 +49,11 @@ async def create_instance(request: Request, pdinstance: TAKInstanceCreate) -> TA
         # Do not leave stuff laying around
         await refresh.delete()
         raise
+
+    if pdinstance.sequence_prefix and pdinstance.sequence_max:
+        await ClientSequence.create_for(
+            instance=refresh, prefix=pdinstance.sequence_prefix, max_clients=pdinstance.sequence_max
+        )
 
     retsrc = refresh.to_dict()
     retsrc["server_name"] = refresh.tfinputs.get("server_name", "unresolved")

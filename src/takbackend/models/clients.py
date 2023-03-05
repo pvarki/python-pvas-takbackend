@@ -40,6 +40,18 @@ class ClientSequence(BaseModel):  # pylint: disable=R0903
             await refresh.update(next_client_no=refresh.next_client_no + 1).apply()
         return cast(Client, client_refresh)
 
+    @classmethod
+    async def create_for(cls, instance: TAKInstance, prefix: str, max_clients: int) -> "ClientSequence":
+        """Create one for server instance"""
+        sequence = ClientSequence(
+            server=instance.pk,
+            prefix=prefix,
+            max_clients=max_clients,
+        )
+        await sequence.create()
+        refresh = await ClientSequence.get(sequence.pk)
+        return cast(ClientSequence, refresh)
+
 
 class Client(BaseModel):  # pylint: disable=R0903
     """Keep track of assigned clients so we can offer unique urls for the users to fetch their info"""
