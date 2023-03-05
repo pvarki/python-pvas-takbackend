@@ -13,5 +13,14 @@
       <li><a href="{{ taisteluajatus_pdf }}">Taisteluajatus</a></li>
       <li><a href="{{ templates_zip }}">Dokumenttipohjat</a></li>
     </ul>
+  <h2>Viestiperusteet</h2>
+    <table>
+        {% for item in client_sequences_urls %}
+        <tr>
+            <td>{{ item["prefix"] }}</td>
+            <td><a href="{{ item["url"] }}">{{ item["url"] }}</a></td>
+        </tr>
+        {% endfor %}
+    </table>
 </body>
 </html>

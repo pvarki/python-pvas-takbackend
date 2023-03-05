@@ -11,6 +11,7 @@ from .config import STATIC_PATH, LOG_LEVEL
 from .views.instances import INSTANCE_ROUTER
 from .views.callbacks import CALLBACKS_ROUTER
 from .views.instructions import INSTRUCTIONS_ROUTER
+from .views.clients import CLIENTS_ROUTER
 
 from . import models
 
@@ -21,6 +22,7 @@ APP.mount("/static", StaticFiles(directory=str(STATIC_PATH)), name="static")
 APP.include_router(INSTRUCTIONS_ROUTER)
 APP.include_router(CALLBACKS_ROUTER)
 APP.include_router(INSTANCE_ROUTER)
+APP.include_router(CLIENTS_ROUTER)
 WRAPPER = DBWrapper(gino=models.db)
 WRAPPER.init_app(APP)
 

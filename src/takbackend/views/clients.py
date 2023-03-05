@@ -18,7 +18,10 @@ CLIENTS_ROUTER = APIRouter()
 
 # FIXME: semantically GETs should be idempotent, but can we solve it in any reasonable way ??
 @CLIENTS_ROUTER.get(
-    "/api/v1/sequences/nextclient/{pkstr}", tags=["clients"], response_class=RedirectResponse, name="get_next_client"
+    "/api/v1/tak/sequences/nextclient/{pkstr}",
+    tags=["tak-clients"],
+    response_class=RedirectResponse,
+    name="get_next_client",
 )
 async def get_next_client(pkstr: str, request: Request) -> RedirectResponse:
     """Get next client in sequence"""

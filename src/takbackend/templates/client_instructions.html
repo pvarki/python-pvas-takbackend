@@ -16,7 +16,9 @@
     <table>
         <tr>
             <td>ZIP</td>
-            <a href="data: application/zip;name={{ client_name }}.zip;base64,{{ client_zip_b64 }}"></a>
+            <td>
+                <a href="data:application/zip;name={{ client_name }}.zip;base64,{{ client_zip_b64 }}" target="_blank" download="{{ client_name }}.zip">{{ client_name }}.zip</a>
+            </td>
         </tr>
     </table>
 </body>
