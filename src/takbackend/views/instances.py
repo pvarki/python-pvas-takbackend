@@ -12,8 +12,8 @@ from arkia11napi.security import JWTBearer, check_acl
 
 
 from ..config import TEMPLATES_PATH
-from ..schemas.instance import DBInstance, InstanceCreate, InstancePager
-from ..models import TAKInstance
+from ..schemas.instance import TAKDBInstance, TAKInstanceCreate, TAKInstancePager
+from ..models import TAKInstance, ClientSequence
 from ..pipelineclient import PipeLineClient
 
 
@@ -23,13 +23,14 @@ INSTANCE_ROUTER = APIRouter(dependencies=[Depends(JWTBearer(auto_error=True))])
 
 
 @INSTANCE_ROUTER.post(
-    "/api/v1/tak/instances", tags=["tak-instances"], response_model=DBInstance, status_code=status.HTTP_201_CREATED
+    "/api/v1/tak/instances", tags=["tak-instances"], response_model=TAKDBInstance, status_code=status.HTTP_201_CREATED
 )
-async def create_instance(request: Request, pdinstance: InstanceCreate) -> DBInstance:
+async def create_instance(request: Request, pdinstance: TAKInstanceCreate) -> TAKDBInstance:
     """Create a new TAKInstance"""
     check_acl(request.state.jwt, "fi.pvarki.takbackend.instance:create")
     data = pdinstance.dict()
     server_name = data.pop("server_name")
+    del data["sequence_prefix"], data["sequence_max"]
     takinstance = TAKInstance(**data)
     takinstance.tfinputs = {
         "server_name": server_name,
@@ -50,17 +51,22 @@ async def create_instance(request: Request, pdinstance: InstanceCreate) -> DBIns
         await refresh.delete()
         raise
 
+    if pdinstance.sequence_prefix and pdinstance.sequence_max:
+        await ClientSequence.create_for(
+            instance=refresh, prefix=pdinstance.sequence_prefix, max_clients=pdinstance.sequence_max
+        )
+
     retsrc = refresh.to_dict()
     retsrc["server_name"] = refresh.tfinputs.get("server_name", "unresolved")
-    ret = DBInstance.parse_obj(retsrc)
+    ret = TAKDBInstance.parse_obj(retsrc)
     if not check_acl(request.state.jwt, "fi.pvarki.takbackend.tfdata:read", auto_error=False):
         ret.tfinputs = None
         ret.tfoutputs = None
     return ret
 
 
-@INSTANCE_ROUTER.get("/api/v1/tak/instances", tags=["tak-instances"], response_model=InstancePager)
-async def list_instances(request: Request) -> InstancePager:
+@INSTANCE_ROUTER.get("/api/v1/tak/instances", tags=["tak-instances"], response_model=TAKInstancePager)
+async def list_instances(request: Request) -> TAKInstancePager:
     """List TAKInstance"""
     query = TAKInstance.query.where(
         TAKInstance.deleted == None  # pylint: disable=C0121 ; # "is None" will create invalid query
@@ -70,27 +76,27 @@ async def list_instances(request: Request) -> InstancePager:
 
     instances = await query.gino.all()
     if not instances:
-        return InstancePager(items=[], count=0)
+        return TAKInstancePager(items=[], count=0)
 
-    pdinstances: List[DBInstance] = []
+    pdinstances: List[TAKDBInstance] = []
     for instance in instances:
         pdinstsrc = instance.to_dict()
-        pdinstsrc["server_name"] = instance.tfinputs.get("server_name", None)
-        pdinst = DBInstance.parse_obj(pdinstsrc)
+        pdinstsrc["server_name"] = instance.tfinputs.get("server_name", "undefined")
+        pdinst = TAKDBInstance.parse_obj(pdinstsrc)
         pdinst.tfoutputs = None
         pdinst.tfinputs = None
         if instance.tfcompleted or instance.tfoutputs:
-            pdinst.enduser_instructions = request.url_for("enduser_instructions", pkstr=str(instance.pk))
+            pdinst.owner_instructions = request.url_for("owner_instructions", pkstr=str(instance.pk))
         pdinstances.append(pdinst)
 
-    return InstancePager(
+    return TAKInstancePager(
         count=len(pdinstances),
         items=pdinstances,
     )
 
 
-@INSTANCE_ROUTER.get("/api/v1/tak/instances/{pkstr}", tags=["tak-instances"], response_model=DBInstance)
-async def get_instance(request: Request, pkstr: str) -> DBInstance:
+@INSTANCE_ROUTER.get("/api/v1/tak/instances/{pkstr}", tags=["tak-instances"], response_model=TAKDBInstance)
+async def get_instance(request: Request, pkstr: str) -> TAKDBInstance:
     """Get a single instance"""
     instance = await get_or_404(TAKInstance, pkstr)
     if not check_acl(request.state.jwt, "fi.pvarki.takbackend.instance:read", auto_error=False):
@@ -99,12 +105,12 @@ async def get_instance(request: Request, pkstr: str) -> DBInstance:
 
     retsrc = instance.to_dict()
     retsrc["server_name"] = instance.tfinputs.get("server_name", "unresolved")
-    ret = DBInstance.parse_obj(retsrc)
+    ret = TAKDBInstance.parse_obj(retsrc)
     if not check_acl(request.state.jwt, "fi.pvarki.takbackend.tfdata:read", auto_error=False):
         ret.tfinputs = None
         ret.tfoutputs = None
     if instance.tfcompleted or instance.tfoutputs:
-        ret.enduser_instructions = request.url_for("enduser_instructions", pkstr=str(instance.pk))
+        ret.owner_instructions = request.url_for("owner_instructions", pkstr=str(instance.pk))
 
     return ret
 
