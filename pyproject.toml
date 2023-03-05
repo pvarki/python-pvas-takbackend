@@ -101,6 +101,7 @@ azure-identity = "^1.12"
 azure-keyvault-secrets = "^4.6"
 aiohttp = "^3.8"
 fastapi-mail = "^1.2"
+qrcode = {version = "^7.4", extras = ["pil"]}
 
 [tool.poetry.extras]
 migrations = ["alembic", "psycopg2"]
