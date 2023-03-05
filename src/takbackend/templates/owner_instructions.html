@@ -3,22 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <link href="{{ url_for('static', path='/style.css') }}" rel="stylesheet">
-    <title>PTT Ohjeet</title>
+    <title>TAK Ohjeet (owner)</title>
 </head>
 <body>
-  <h1>TAK Ohjeet</h1>
+  <h1>TAK Ohjeet (owner)</h1>
   <h2>Dokumentit</h2>
     <ul>
       <li><a href="{{ instructions_pdf }}">Käyttöohjeet</a></li>
       <li><a href="{{ taisteluajatus_pdf }}">Taisteluajatus</a></li>
       <li><a href="{{ templates_zip }}">Dokumenttipohjat</a></li>
     </ul>
-  <h2>Viestiperusteet</h2>
-    <table>
-          <tr>
-              <td>Osoite</td>
-              <td>{{ dns_name }}</td>
-          </tr>
-    </table>
 </body>
 </html>

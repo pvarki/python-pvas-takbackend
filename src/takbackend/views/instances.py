@@ -85,7 +85,7 @@ async def list_instances(request: Request) -> TAKInstancePager:
         pdinst.tfoutputs = None
         pdinst.tfinputs = None
         if instance.tfcompleted or instance.tfoutputs:
-            pdinst.enduser_instructions = request.url_for("enduser_instructions", pkstr=str(instance.pk))
+            pdinst.owner_instructions = request.url_for("owner_instructions", pkstr=str(instance.pk))
         pdinstances.append(pdinst)
 
     return TAKInstancePager(
@@ -109,7 +109,7 @@ async def get_instance(request: Request, pkstr: str) -> TAKDBInstance:
         ret.tfinputs = None
         ret.tfoutputs = None
     if instance.tfcompleted or instance.tfoutputs:
-        ret.enduser_instructions = request.url_for("enduser_instructions", pkstr=str(instance.pk))
+        ret.owner_instructions = request.url_for("owner_instructions", pkstr=str(instance.pk))
 
     return ret
 

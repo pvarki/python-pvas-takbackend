@@ -21,7 +21,13 @@ class TAKInstanceCreate(CreateBase):
     grouping: str = Field(description="Arbitrary string to group deployments by", default="_")
     server_name: str = Field(description="TAK-Server name shown to clients")
     sequence_prefix: Optional[str] = Field(
-        description="Autogenerate ClientSequence with this prefix for this instance", nullable=True, default=None
+        description=(
+            "Autogenerate ClientSequence with this prefix for this instance, see ClientSequenceCreate for details"
+        ),
+        nullable=True,
+        default=None,
+        regex=r"^[a-zA-Z0-9_]{3,}$",
+        example="FOX_",
     )
     sequence_max: Optional[int] = Field(
         description="Autogenerate ClientSequence with this many clients for this instance", nullable=True, default=None
