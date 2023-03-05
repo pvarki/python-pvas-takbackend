@@ -47,9 +47,6 @@ class TAKDBInstance(DBBase):
     )
     tfinputs: Optional[Dict[str, Any]] = Field(description="Inputs given to TerraForm, only visible to admins")
     tfoutputs: Optional[Dict[str, Any]] = Field(description="Outpust from TerraForm, only visible to admins")
-    enduser_instructions: Optional[str] = Field(
-        description="URL you can give to end-users of the service, contains instructions and connection info"
-    )
     owner_instructions: Optional[str] = Field(
         description="Like enduser_instructions but has more information (like server superuser password)"
     )
