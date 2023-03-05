@@ -1,5 +1,5 @@
 """Instruction views"""
-from typing import Optional, Dict, Any, cast
+from typing import Optional, Dict, Any, Tuple, cast
 import logging
 from pathlib import Path
 import base64
@@ -92,6 +92,18 @@ async def get_or_create_client_zip(instance: TAKInstance, name: str, filepath: P
     return True
 
 
+async def client_instructions_common(pkstr: str) -> Tuple[Client, TAKInstance]:
+    """Dont' Repeat Yourself, the common stuff"""
+    client = await get_or_404(Client, pkstr)
+    instance = await TAKInstance.get(client.server)
+    if not instance.tfoutputs:
+        if instance.tfcompleted:
+            raise HTTPException(status_code=409, detail="Terraform information not available but pipeline completed")
+        raise HTTPException(status_code=501, detail="Terraform information not received yet")
+
+    return client, instance
+
+
 @INSTRUCTIONS_ROUTER.get(
     "/api/v1/tak/clients/{pkstr}/instructions",
     tags=["tak-clients"],
@@ -99,13 +111,8 @@ async def get_or_create_client_zip(instance: TAKInstance, name: str, filepath: P
     name="get_client_instructions",
 )
 async def get_client_instructions(request: Request, pkstr: str) -> Response:
-    """Get next client in sequence"""
-    client = await get_or_404(Client, pkstr)
-    instance = await TAKInstance.get(client.server)
-    if not instance.tfoutputs:
-        if instance.tfcompleted:
-            raise HTTPException(status_code=409, detail="Terraform information not available but pipeline completed")
-        raise HTTPException(status_code=501, detail="Terraform information not received yet")
+    """Get instructions etc for this unique client"""
+    client, instance = await client_instructions_common(pkstr)
 
     with tempfile.NamedTemporaryFile(suffix=".zip") as tmp:
         if not await get_or_create_client_zip(instance, client.name, Path(tmp.name)):
@@ -133,12 +140,7 @@ async def get_client_instructions(request: Request, pkstr: str) -> Response:
 )
 async def get_client_zipfile(pkstr: str) -> Response:
     """URL endpoint for getting the client zip file in case the data url is a problem"""
-    client = await get_or_404(Client, pkstr)
-    instance = await TAKInstance.get(client.server)
-    if not instance.tfoutputs:
-        if instance.tfcompleted:
-            raise HTTPException(status_code=409, detail="Terraform information not available but pipeline completed")
-        raise HTTPException(status_code=501, detail="Terraform information not received yet")
+    client, instance = await client_instructions_common(pkstr)
 
     with tempfile.NamedTemporaryFile(suffix=".zip") as tmp:
         if not await get_or_create_client_zip(instance, client.name, Path(tmp.name)):
