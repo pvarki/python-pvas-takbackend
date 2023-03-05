@@ -16,6 +16,7 @@ from libadvian.binpackers import ensure_str
 from ..config import TEMPLATES_PATH
 from ..models import TAKInstance, Client, ClientSequence
 from .. import config
+from ..qrcodegen import create_qrcode_b64
 
 LOGGER = logging.getLogger(__name__)
 TEMPLATES = Jinja2Templates(directory=str(TEMPLATES_PATH))
@@ -49,6 +50,7 @@ async def get_owner_instructions(request: Request, pkstr: str) -> Response:
             "taisteluajatus_pdf": config.TAKORTTI_URL,
             "templates_zip": config.DOCTEMPLATE_URL,
             "client_sequences_urls": sequences,
+            "create_qrcode_b64": create_qrcode_b64,
         },
     )
 
