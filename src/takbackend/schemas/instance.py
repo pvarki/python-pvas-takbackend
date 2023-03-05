@@ -30,7 +30,11 @@ class TAKInstanceCreate(CreateBase):
         example="FOX_",
     )
     sequence_max: Optional[int] = Field(
-        description="Autogenerate ClientSequence with this many clients for this instance", nullable=True, default=None
+        description=(
+            "Autogenerate ClientSequence with this many clients for this instance, use together with sequence_prefix"
+        ),
+        nullable=True,
+        default=500,
     )
 
 
