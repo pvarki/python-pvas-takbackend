@@ -11,7 +11,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from ..models import TAKInstance
 from ..mailer import singleton as getmailer
-from ..config import TEMPLATES_PATH
+from ..config import TEMPLATES_PATH, ORDER_READY_SUBJECT
 
 LOGGER = logging.getLogger(__name__)
 CALLBACKS_ROUTER = APIRouter()
@@ -36,7 +36,7 @@ async def terraform_callback(request: Request, pkstr: str, tfoutputs: Dict[str, 
     )
     mailer = getmailer()
     msg = MessageSchema(
-        subject="Order ready",
+        subject=ORDER_READY_SUBJECT,
         recipients=[instance.ready_email],
         subtype=MessageType.plain,
         body=template.render(url=request.url_for("enduser_instructions", pkstr=str(instance.pk))),
