@@ -8,6 +8,18 @@ x-dbconfig_env: &dbconfig_env
   DB_PASSWORD: &dbpass {{.Env.DB_PASSWORD}} # pragma: allowlist secret
   DB_PORT: &dbport 5432
 
+# Mailer config (don't ask about some of the key names)
+x-mailconfig_env: &mailconfig_env
+  FIXME_INSTRUCTIONS_RECEIVER_EMAIL: "paavo.pokkinen@hallatek.com"
+  MAIL_FROM: "{{getenv "MAIL_FROM" "noreply@pvarki.fi"}}"
+  #SUPPRESS_SEND: 1 # If you need to suppress for a moment
+  MAIL_USERNAME: "{{.Env.MAIL_USERNAME}}" # MUST be set even if not used
+  MAIL_PASSWORD: ""{{.Env.MAIL_PASSWORD}}" # MUST be set even if not used"
+  USE_CREDENTIALS: "1" # Set to 1 if you need user/pass for the server
+  MAIL_PORT: {{.Env.MAIL_PORT}}
+  MAIL_SERVER: {{.Env.MAIL_SERVER}}
+  MAIL_STARTTLS: "{{getenv "MAIL_STARTTLS" "1"}}" # Try to upgrade to TLS
+  MAIL_SSL_TLS: "{{getenv "MAIL_SSL_TLS" "0"}}" # Force TLS
 
 x-security_env: &security_env
   JWT_PRIVKEY_PATH: "0"
@@ -64,6 +76,7 @@ services:
       target: production
     environment:
       <<: *dbconfig_env
+      <<: *mailconfig_env
       <<: *security_env
     volumes:
       - {{getenv "HOST_PUBKEY_PATH" "./jwt.pub"}}:/app/jwtRS256.pub

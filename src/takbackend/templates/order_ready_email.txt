@@ -1,4 +1,3 @@
 Greetings,
 
 Your order is now ready {{ url }}
-

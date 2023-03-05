@@ -6,17 +6,14 @@ import pendulum
 from fastapi import APIRouter, HTTPException, Request
 from starlette import status
 from arkia11napi.helpers import get_or_404
-
-
-from ..models import TAKInstance
-
-from ..mailer import singleton as getmailer
 from fastapi_mail import MessageSchema, MessageType
 from jinja2 import Environment, FileSystemLoader
 
+from ..models import TAKInstance
+from ..mailer import singleton as getmailer
 from ..config import (
     TEMPLATES_PATH,
-    INSTRUCTIONS_RECEIVER_EMAIL,
+    FIXME_INSTRUCTIONS_RECEIVER_EMAIL,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -34,11 +31,13 @@ async def terraform_callback(request: Request, pkstr: str, tfoutputs: Dict[str, 
     LOGGER.debug("called for {}, tfoutputs={}".format(pkstr, tfoutputs))
     await instance.update(tfcompleted=pendulum.now("UTC"), tfoutputs=tfoutputs).apply()
 
-    template = Environment(loader=FileSystemLoader(TEMPLATES_PATH), autoescape=True).get_template("order_ready_email.txt")
+    template = Environment(loader=FileSystemLoader(TEMPLATES_PATH), autoescape=True).get_template(
+        "order_ready_email.txt"
+    )
     mailer = getmailer()
     msg = MessageSchema(
         subject="Order ready",
-        recipients=[INSTRUCTIONS_RECEIVER_EMAIL],
+        recipients=[FIXME_INSTRUCTIONS_RECEIVER_EMAIL],
         subtype=MessageType.plain,
         body=template.render(url=request.url_for("enduser_instructions", pkstr=str(instance.pk))),
     )
