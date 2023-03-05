@@ -1,8 +1,11 @@
 """Instruction views"""
+from typing import Optional, Dict, Any, cast
 import logging
 from pathlib import Path
 import base64
+import tempfile
 
+import aiohttp
 from fastapi import APIRouter, Request, Response, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -42,9 +45,35 @@ async def get_owner_instructions(request: Request, pkstr: str) -> Response:
     )
 
 
-async def get_or_create_client_zip(instance: TAKInstance, name: str) -> Path:
+async def get_or_create_client_zip(instance: TAKInstance, name: str, filepath: Path) -> bool:
     """Get the given client to a temporary directory"""
-    raise NotImplementedError()
+    instance.tfoutputs = cast(Dict[str, Any], instance.tfoutputs)
+    bearer_token = instance.tfoutputs["cert_api_token"]["value"]
+    dns_name = instance.tfoutputs["dns_name"]["value"]
+    api_base = f"https://{dns_name}/api"
+    headers = {"Authorization": f"Bearer {bearer_token}"}
+
+    async def get_client_zip(session: aiohttp.ClientSession) -> Optional[bytes]:
+        """do the get, DRY"""
+        nonlocal api_base, name
+        async with session.get(f"{api_base}/v1/clients/{name}") as resp:
+            if resp.status != 200:
+                return None
+            return await resp.read()
+
+    async with aiohttp.ClientSession(headers=headers) as session:
+        content = await get_client_zip(session)
+        if content is None:
+            async with session.post(f"{api_base}/v1/clients", json={name: name}) as resp:
+                resp.raise_for_status()
+                content = await resp.read()
+        if not content:
+            raise ValueError("Could not get zip content")
+
+        with filepath.open("wb") as fpntr:
+            fpntr.write(content)
+
+    return True
 
 
 @INSTRUCTIONS_ROUTER.get(
@@ -62,9 +91,11 @@ async def get_client_instructions(request: Request, pkstr: str) -> Response:
             raise HTTPException(status_code=409, detail="Terraform information not available but pipeline completed")
         raise HTTPException(status_code=501, detail="Terraform information not received yet")
 
-    zipfile = await get_or_create_client_zip(instance, client.name)
-    with open(zipfile, "rb") as fpntr:
-        client_zip_b64 = base64.urlsafe_b64encode(fpntr.read())
+    with tempfile.NamedTemporaryFile() as tmp:
+        if not await get_or_create_client_zip(instance, client.name, Path(tmp.name)):
+            raise RuntimeError("Could not get client zip")
+        with open(tmp.name, "rb") as fpntr:
+            client_zip_b64 = base64.urlsafe_b64encode(fpntr.read())
 
     return TEMPLATES.TemplateResponse(
         "client_instructions.html",
