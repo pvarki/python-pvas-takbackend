@@ -20,10 +20,21 @@ class TAKInstanceCreate(CreateBase):
     color: str = Field(description="Color of this deployment, HTML 6-character RGB code #rrggbb, no alpha")
     grouping: str = Field(description="Arbitrary string to group deployments by", default="_")
     server_name: str = Field(description="TAK-Server name shown to clients")
+    sequence_prefix: Optional[str] = Field(
+        description="Autogenerate ClientSequence with this prefix for this instance", nullable=True, default=None
+    )
+    sequence_max: Optional[int] = Field(
+        description="Autogenerate ClientSequence with this many clients for this instance", nullable=True, default=None
+    )
 
 
-class TAKDBInstance(TAKInstanceCreate, DBBase):
+class TAKDBInstance(DBBase):
     """Display/update TAKInstance objects"""
+
+    ownerid: str = Field(description="Who owns this, usually should point to 'userid' in JWT")
+    color: str = Field(description="Color of this deployment, HTML 6-character RGB code #rrggbb, no alpha")
+    grouping: str = Field(description="Arbitrary string to group deployments by", default="_")
+    server_name: str = Field(description="TAK-Server name shown to clients")
 
     tfcompleted: Optional[datetime.datetime] = Field(
         description="When was the TerraForm pipeline completed", nullable=True, default=None
