@@ -1,5 +1,5 @@
 """tak client instances book-keeping"""
-from typing import cast
+from typing import AsyncGenerator, List, cast
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID as saUUID
 
@@ -51,6 +51,24 @@ class ClientSequence(BaseModel):  # pylint: disable=R0903
         await sequence.create()
         refresh = await ClientSequence.get(sequence.pk)
         return cast(ClientSequence, refresh)
+
+    @classmethod
+    async def iter_instance_sequences(cls, server: TAKInstance) -> AsyncGenerator["ClientSequence", None]:
+        """Resolve roles user has (sorted in descending priority so they're easier to merge) and yields one by one"""
+        async with db.acquire() as conn:  # Cursors need transaction
+            async with conn.transaction():
+                async for cseq in ClientSequence.query.where(ClientSequence.server == server.pk).where(
+                    ClientSequence.deleted == None  # pylint: disable=C0121 ; # "is None" will create invalid query
+                ).gino.iterate():
+                    yield cseq
+
+    @classmethod
+    async def list_instance_sequences(cls, server: TAKInstance) -> List["ClientSequence"]:
+        """Consumes the iterator from iter_user_roles and returns a list"""
+        ret = []
+        async for role in cls.iter_instance_sequences(server):
+            ret.append(role)
+        return ret
 
 
 class Client(BaseModel):  # pylint: disable=R0903
