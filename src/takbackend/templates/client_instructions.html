@@ -1,25 +1,32 @@
-<!DOCTYPE html>
-<html lang="fi">
-<head>
-    <meta charset="UTF-8">
-    <link href="{{ url_for('static', path='/style.css') }}" rel="stylesheet">
-    <title>TAK Ohjeet</title>
-</head>
-<body>
-  <h1>TAK Ohjeet</h1>
-  <h2>Dokumentit</h2>
-    <ul>
-      <li><a href="{{ instructions_pdf }}">Käyttöohjeet</a></li>
-      <li><a href="{{ taisteluajatus_pdf }}">Taisteluajatus</a></li>
-    </ul>
-  <h2>Viestiperusteet</h2>
-    <table>
-        <tr>
-            <td>ZIP</td>
-            <td>
-                <a href="data:application/zip;name={{ client_name }}.zip;base64,{{ client_zip_b64 }}" target="_blank" download="{{ client_name }}.zip">{{ client_name }}.zip</a>
-            </td>
-        </tr>
-    </table>
+  <!DOCTYPE html>
+  <html lang="fi">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link href="{{ url_for('static', path='/style.css') }}" rel="stylesheet">
+      <title>TAK Ohjeet</title>
+  </head>
+
+  <body>
+    <section class="section">
+    <div class="container">
+
+      <div class="box">
+        <h1>TAK OHJEET</h1>
+      </div>
+
+      <div class="box">
+        <h2>DOKUMENTIT</h2>
+        <a class="btn" href="{{ instructions_pdf }}">Käyttöohjeet</a>
+        <a class="btn" href="{{ taisteluajatus_pdf }}">Taisteluajatus</a>
+      </div>
+
+      <div class="box">
+        <h2>VIESTIPERUSTEET</h2>
+        <a class="btn" href="data:application/zip;name={{ client_name }}.zip;base64,{{ client_zip_b64 }}" target="_blank" download="{{ client_name }}.zip">Lataa ZIP-paketti</a>
+      </div>
+
+    </div>
+  </div>
 </body>
 </html>
