@@ -1,27 +1,46 @@
-<!DOCTYPE html>
-<html lang="fi">
-<head>
+  <!DOCTYPE html>
+  <html lang="fi">
+  <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="{{ url_for('static', path='/style.css') }}" rel="stylesheet">
-    <title>TAK Ohjeet (owner)</title>
-</head>
-<body>
-  <h1>TAK Ohjeet (owner)</h1>
-  <h2>Dokumentit</h2>
-    <ul>
-      <li><a href="{{ instructions_pdf }}">Käyttöohjeet</a></li>
-      <li><a href="{{ taisteluajatus_pdf }}">Taisteluajatus</a></li>
-      <li><a href="{{ templates_zip }}">Dokumenttipohjat</a></li>
-    </ul>
-  <h2>Viestiperusteet</h2>
-    <table>
-        {% for item in client_sequences_urls %}
-        <tr>
-            <td>{{ item["prefix"] }}</td>
-            <td><a href="{{ item["url"] }}">{{ item["url"] }}</a></td>
-            <td><img src="data:image/webp;name={{ item["prefix"] }}.webp;base64,{{ create_qrcode_b64(item["url"] ) }}" /></td>
-        </tr>
-        {% endfor %}
-    </table>
-</body>
+    <title>TAK Ohjeet</title>
+  </head>
+  <body>
+    <section class="section">
+      <div class="container">
+
+        <div class="box">
+          <h1>TAK OHJEET<br /><small>(owner)</small></h1>
+        </div>
+
+        <div class="box">
+          <h2>VIESTIPERUSTEET</h2>
+          <table class="table">
+
+            {% for item in client_sequences_urls %}
+
+              <h3">{{ item["prefix"] }}</h3>
+              <div class="qr_box"><img src="data:image/webp;name={{ item["prefix"] }}.webp;base64,{{ create_qrcode_b64(item["url"] ) }}" /></div>
+              <a class="btn" href="{{ item["url"] }}">Kopioi jakolinkki</a>
+
+            {% endfor %}
+
+          </table>
+        </div>
+
+        <div class="box">
+          <h2>DOKUMENTIT</h2>
+          <a class="btn" href="{{ instructions_pdf }}">Käyttöohjeet</a>
+          <a class="btn" href="{{ taisteluajatus_pdf }}">Taisteluajatus</a>
+          <a class="btn" href="{{ templates_zip }}">Dokumenttipohjat</a>
+        </div>
+
+
+
+      </div>
+    </div>
+
+
+  </body>
 </html>
