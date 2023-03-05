@@ -19,7 +19,6 @@ PIPELINE_SSHKEY_SECRETNAME: str = cfg("PIPELINE_SSHKEY_SECRETNAME", default="ssh
 INSTRUCTIONS_URL: str = cfg(
     "INSTRUCTIONS_URL", default="https://arkipublic.blob.core.windows.net/ohjeet/Kayttoohje_TAK.pdf"
 )
-FIXME_INSTRUCTIONS_RECEIVER_EMAIL: str = cfg("FIXME_INSTRUCTIONS_RECEIVER_EMAIL", default="paavo.pokkinen@hallatek.com")
 TAKORTTI_URL: str = cfg(
     "TAKORTTI_URL", default="https://arkipublic.blob.core.windows.net/ohjeet/Taisteluajatuskortti_TAK.pdf"
 )
