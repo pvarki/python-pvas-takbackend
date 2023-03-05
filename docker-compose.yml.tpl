@@ -10,7 +10,6 @@ x-dbconfig_env: &dbconfig_env
 
 # Mailer config (don't ask about some of the key names)
 x-mailconfig_env: &mailconfig_env
-  FIXME_INSTRUCTIONS_RECEIVER_EMAIL: "paavo.pokkinen@hallatek.com"
   MAIL_FROM: "{{getenv "MAIL_FROM" "noreply@pvarki.fi"}}"
   #SUPPRESS_SEND: 1 # If you need to suppress for a moment
   MAIL_USERNAME: "{{.Env.MAIL_USERNAME}}" # MUST be set even if not used

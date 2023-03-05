@@ -19,7 +19,6 @@ PIPELINE_SSHKEY_SECRETNAME: str = cfg("PIPELINE_SSHKEY_SECRETNAME", default="ssh
 INSTRUCTIONS_URL: str = cfg(
     "INSTRUCTIONS_URL", default="https://arkipublic.blob.core.windows.net/ohjeet/Kayttoohje_TAK.pdf"
 )
-FIXME_INSTRUCTIONS_RECEIVER_EMAIL: str = cfg("FIXME_INSTRUCTIONS_RECEIVER_EMAIL", default="paavo.pokkinen@hallatek.com")
 TAKORTTI_URL: str = cfg(
     "TAKORTTI_URL", default="https://arkipublic.blob.core.windows.net/ohjeet/Taisteluajatuskortti_TAK.pdf"
 )
@@ -30,3 +29,4 @@ DOCTEMPLATE_URL: str = cfg(
 PIPELINE_SSHKEY_OVERRIDE: Optional[str] = cfg("PIPELINE_SSHKEY_OVERRIDE", default=None)
 PIPELINE_TOKEN_OVERRIDE: Optional[str] = cfg("PIPELINE_TOKEN_OVERRIDE", default=None)
 PIPELINE_SUPPRESS: bool = cfg("PIPELINE_SUPPRESS", default=False, cast=bool)
+ORDER_READY_SUBJECT: str = cfg("ORDER_READY_SUBJECT", default="pvarki TAK server order ready")

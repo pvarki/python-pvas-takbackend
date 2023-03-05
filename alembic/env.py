@@ -32,6 +32,16 @@ target_metadata = db
 # ... etc.
 
 
+def include_name(name, type_, parent_names):
+    _ = parent_names
+    if type_ == "schema":
+        return name in ["takbackend"]
+    if type_ == "table" and "alembic_version" in name:
+        if name != "takbackend_alembic_version":
+            return False
+    return True
+
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -48,6 +58,8 @@ def run_migrations_offline() -> None:
     context.configure(
         url=url,
         target_metadata=target_metadata,
+        include_schemas=True,
+        include_name=include_name,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         version_table="takbackend_alembic_version",
@@ -74,6 +86,8 @@ def run_migrations_online() -> None:
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
+            include_schemas=True,
+            include_name=include_name,
             version_table="takbackend_alembic_version",
         )
 
