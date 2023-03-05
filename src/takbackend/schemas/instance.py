@@ -36,6 +36,12 @@ class TAKInstanceCreate(CreateBase):
         nullable=True,
         default=500,
     )
+    ready_email: Optional[str] = Field(
+        description="Send email to this address instead of JWT default", nullable=True, default=None
+    )
+    ready_callback_url: Optional[str] = Field(
+        description="Post TAKDBInstance to this URL when TF completes", nullable=True, default=None
+    )
 
 
 class TAKDBInstance(DBBase):
@@ -53,6 +59,12 @@ class TAKDBInstance(DBBase):
     tfoutputs: Optional[Dict[str, Any]] = Field(description="Outpust from TerraForm, only visible to admins")
     owner_instructions: Optional[str] = Field(
         description="Like enduser_instructions but has more information (like server superuser password)"
+    )
+    ready_email: Optional[str] = Field(
+        description="Send email to this address instead of JWT default", nullable=True, default=None
+    )
+    ready_callback_url: Optional[str] = Field(
+        description="Post TAKDBInstance to this URL when TF completes", nullable=True, default=None
     )
 
 
