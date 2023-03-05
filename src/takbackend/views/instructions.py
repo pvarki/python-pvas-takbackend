@@ -1,5 +1,5 @@
 """Instruction views"""
-from typing import Optional, Dict, Any, cast
+from typing import Optional, Dict, Any, Tuple, cast
 import logging
 from pathlib import Path
 import base64
@@ -16,6 +16,7 @@ from libadvian.binpackers import ensure_str
 from ..config import TEMPLATES_PATH
 from ..models import TAKInstance, Client, ClientSequence
 from .. import config
+from ..qrcodegen import create_qrcode_b64
 
 LOGGER = logging.getLogger(__name__)
 TEMPLATES = Jinja2Templates(directory=str(TEMPLATES_PATH))
@@ -49,6 +50,7 @@ async def get_owner_instructions(request: Request, pkstr: str) -> Response:
             "taisteluajatus_pdf": config.TAKORTTI_URL,
             "templates_zip": config.DOCTEMPLATE_URL,
             "client_sequences_urls": sequences,
+            "create_qrcode_b64": create_qrcode_b64,
         },
     )
 
@@ -90,14 +92,8 @@ async def get_or_create_client_zip(instance: TAKInstance, name: str, filepath: P
     return True
 
 
-@INSTRUCTIONS_ROUTER.get(
-    "/api/v1/tak/clients/{pkstr}/instructions",
-    tags=["tak-clients"],
-    response_class=HTMLResponse,
-    name="get_client_instructions",
-)
-async def get_client_instructions(request: Request, pkstr: str) -> Response:
-    """Get next client in sequence"""
+async def client_instructions_common(pkstr: str) -> Tuple[Client, TAKInstance]:
+    """Dont' Repeat Yourself, the common stuff"""
     client = await get_or_404(Client, pkstr)
     instance = await TAKInstance.get(client.server)
     if not instance.tfoutputs:
@@ -105,7 +101,20 @@ async def get_client_instructions(request: Request, pkstr: str) -> Response:
             raise HTTPException(status_code=409, detail="Terraform information not available but pipeline completed")
         raise HTTPException(status_code=501, detail="Terraform information not received yet")
 
-    with tempfile.NamedTemporaryFile() as tmp:
+    return client, instance
+
+
+@INSTRUCTIONS_ROUTER.get(
+    "/api/v1/tak/clients/{pkstr}/instructions",
+    tags=["tak-clients"],
+    response_class=HTMLResponse,
+    name="get_client_instructions",
+)
+async def get_client_instructions(request: Request, pkstr: str) -> Response:
+    """Get instructions etc for this unique client"""
+    client, instance = await client_instructions_common(pkstr)
+
+    with tempfile.NamedTemporaryFile(suffix=".zip") as tmp:
         if not await get_or_create_client_zip(instance, client.name, Path(tmp.name)):
             raise RuntimeError("Could not get client zip")
         with open(tmp.name, "rb") as fpntr:
@@ -121,3 +130,24 @@ async def get_client_instructions(request: Request, pkstr: str) -> Response:
             "client_name": client.name,
         },
     )
+
+
+@INSTRUCTIONS_ROUTER.get(
+    "/api/v1/tak/clients/{pkstr}/instructions/zip",
+    tags=["tak-clients"],
+    name="get_client_zipfile",
+    responses={200: {"content": {"application/zip": {}}}},
+)
+async def get_client_zipfile(pkstr: str) -> Response:
+    """URL endpoint for getting the client zip file in case the data url is a problem"""
+    client, instance = await client_instructions_common(pkstr)
+
+    with tempfile.NamedTemporaryFile(suffix=".zip") as tmp:
+        if not await get_or_create_client_zip(instance, client.name, Path(tmp.name)):
+            raise RuntimeError("Could not get client zip")
+
+        return Response(
+            content=tmp.read(),
+            media_type="application/zip",
+            headers={"Content-Disposition": f"""attachment;filename="{client.name}.zip"""},
+        )

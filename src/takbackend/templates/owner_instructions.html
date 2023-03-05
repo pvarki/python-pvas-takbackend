@@ -19,6 +19,7 @@
         <tr>
             <td>{{ item["prefix"] }}</td>
             <td><a href="{{ item["url"] }}">{{ item["url"] }}</a></td>
+            <td><img src="data:image/webp;name={{ item["prefix"] }}.webp;base64,{{ create_qrcode_b64(item["url"] ) }}" /></td>
         </tr>
         {% endfor %}
     </table>
