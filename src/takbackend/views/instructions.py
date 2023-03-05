@@ -107,7 +107,7 @@ async def get_client_instructions(request: Request, pkstr: str) -> Response:
             raise HTTPException(status_code=409, detail="Terraform information not available but pipeline completed")
         raise HTTPException(status_code=501, detail="Terraform information not received yet")
 
-    with tempfile.NamedTemporaryFile() as tmp:
+    with tempfile.NamedTemporaryFile(suffix=".zip") as tmp:
         if not await get_or_create_client_zip(instance, client.name, Path(tmp.name)):
             raise RuntimeError("Could not get client zip")
         with open(tmp.name, "rb") as fpntr:
@@ -123,3 +123,29 @@ async def get_client_instructions(request: Request, pkstr: str) -> Response:
             "client_name": client.name,
         },
     )
+
+
+@INSTRUCTIONS_ROUTER.get(
+    "/api/v1/tak/clients/{pkstr}/instructions/zip",
+    tags=["tak-clients"],
+    name="get_client_zipfile",
+    responses={200: {"content": {"application/zip": {}}}},
+)
+async def get_client_zipfile(pkstr: str) -> Response:
+    """URL endpoint for getting the client zip file in case the data url is a problem"""
+    client = await get_or_404(Client, pkstr)
+    instance = await TAKInstance.get(client.server)
+    if not instance.tfoutputs:
+        if instance.tfcompleted:
+            raise HTTPException(status_code=409, detail="Terraform information not available but pipeline completed")
+        raise HTTPException(status_code=501, detail="Terraform information not received yet")
+
+    with tempfile.NamedTemporaryFile(suffix=".zip") as tmp:
+        if not await get_or_create_client_zip(instance, client.name, Path(tmp.name)):
+            raise RuntimeError("Could not get client zip")
+
+        return Response(
+            content=tmp.read(),
+            media_type="application/zip",
+            headers={"Content-Disposition": f"""attachment;filename="{client.name}.zip"""},
+        )
