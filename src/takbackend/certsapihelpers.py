@@ -2,6 +2,8 @@
 from typing import Optional, Any, Tuple, Dict, cast
 import logging
 from pathlib import Path
+import datetime
+import asyncio
 
 import aiohttp
 from aiohttp.client_exceptions import ClientError
@@ -9,6 +11,8 @@ from aiohttp.client_exceptions import ClientError
 from .models import TAKInstance
 
 LOGGER = logging.getLogger(__name__)
+CERTAPI_PING_INTERVAL = 30
+CERTAPI_PING_TIMEOUT = datetime.timedelta(minutes=30)
 
 
 def get_http_options(instance: TAKInstance) -> Tuple[str, Dict[str, str]]:
@@ -36,6 +40,18 @@ async def ping_certsapi(instance: TAKInstance) -> bool:
         LOGGER.info("exception {} while GETting {}".format(exc, url))
 
     return False
+
+
+async def ping_until_ok(instance: TAKInstance) -> bool:
+    """Calls ping_certsapi until it responds with True or we time out"""
+    started = datetime.datetime.now()
+    while not await ping_certsapi(instance):
+        if (datetime.datetime.now() - started) > CERTAPI_PING_TIMEOUT:
+            LOGGER.debug("Timed out waiting for certsapi for {}".format(str(instance.pk)))
+            return False
+        LOGGER.debug("waiting for certsapi for {}".format(str(instance.pk)))
+        await asyncio.sleep(CERTAPI_PING_INTERVAL)
+    return True
 
 
 async def get_or_create_client_zip(instance: TAKInstance, name: str, filepath: Path) -> bool:

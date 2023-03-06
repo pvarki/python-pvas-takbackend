@@ -17,11 +17,10 @@ from ..models import TAKInstance
 from ..mailer import singleton as getmailer
 from ..config import TEMPLATES_PATH, ORDER_READY_SUBJECT
 from ..schemas.instance import TAKDBInstance
-from ..certsapihelpers import ping_certsapi
+from ..certsapihelpers import ping_until_ok
 
 LOGGER = logging.getLogger(__name__)
 CALLBACKS_ROUTER = APIRouter()
-CERTAPI_PING_INTERVAL = 30
 
 
 async def queue_ready_email(instance: TAKInstance, request: Request) -> None:
@@ -43,9 +42,8 @@ async def queue_ready_email(instance: TAKInstance, request: Request) -> None:
 
     async def send_when_pings(msg: MessageSchema, instance: TAKInstance) -> None:
         """Ping certsapi and send the email when ping goes through"""
-        while not await ping_certsapi(instance):
-            LOGGER.debug("waiting for certsapi")
-            await asyncio.sleep(CERTAPI_PING_INTERVAL)
+        if not await ping_until_ok(instance):
+            return
         try:
             mailer = getmailer()
             await mailer.send_message(msg)
@@ -68,10 +66,8 @@ async def queue_ready_callback(instance: TAKInstance, request: Request) -> None:
 
     async def do_when_pings(data_str: str, instance: TAKInstance) -> None:
         """Ping certsapi and do the callback when ping goes through"""
-        while not await ping_certsapi(instance):
-            LOGGER.debug("waiting for certsapi")
-            await asyncio.sleep(CERTAPI_PING_INTERVAL)
-
+        if not await ping_until_ok(instance):
+            return
         try:
             async with aiohttp.ClientSession() as session:
                 url = instance.ready_callback_url
