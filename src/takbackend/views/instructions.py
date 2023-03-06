@@ -42,6 +42,8 @@ async def get_owner_instructions(request: Request, pkstr: str) -> Response:
         for seq in await ClientSequence.list_instance_sequences(instance)
     ]
 
+    instance.tfoutputs = cast(Dict[str, Any], instance.tfoutputs)
+    instance.tfinputs = cast(Dict[str, Any], instance.tfinputs)
     return TEMPLATES.TemplateResponse(
         "owner_instructions.html",
         {
@@ -51,6 +53,7 @@ async def get_owner_instructions(request: Request, pkstr: str) -> Response:
             "templates_zip": config.DOCTEMPLATE_URL,
             "client_sequences_urls": sequences,
             "create_qrcode_b64": create_qrcode_b64,
+            "friendly_name": instance.tfinputs.get("server_name", "undefined"),
         },
     )
 
@@ -120,6 +123,8 @@ async def get_client_instructions(request: Request, pkstr: str) -> Response:
         with open(tmp.name, "rb") as fpntr:
             client_zip_b64 = base64.b64encode(fpntr.read())
 
+    instance.tfoutputs = cast(Dict[str, Any], instance.tfoutputs)
+    instance.tfinputs = cast(Dict[str, Any], instance.tfinputs)
     return TEMPLATES.TemplateResponse(
         "client_instructions.html",
         {
@@ -128,6 +133,7 @@ async def get_client_instructions(request: Request, pkstr: str) -> Response:
             "taisteluajatus_pdf": config.TAKORTTI_URL,
             "client_zip_b64": ensure_str(client_zip_b64),
             "client_name": client.name,
+            "friendly_name": instance.tfinputs.get("server_name", "undefined"),
         },
     )
 

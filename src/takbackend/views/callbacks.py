@@ -22,6 +22,8 @@ CALLBACKS_ROUTER = APIRouter()
 
 async def send_ready_email(instance: TAKInstance, request: Request) -> None:
     """Send the ready email"""
+    instance.tfinputs = cast(Dict[str, Any], instance.tfinputs)
+    instance.tfoutputs = cast(Dict[str, Any], instance.tfoutputs)
     template = Environment(loader=FileSystemLoader(TEMPLATES_PATH), autoescape=True).get_template(
         "order_ready_email.txt"
     )
@@ -30,7 +32,10 @@ async def send_ready_email(instance: TAKInstance, request: Request) -> None:
         subject=ORDER_READY_SUBJECT,
         recipients=[instance.ready_email],
         subtype=MessageType.plain,
-        body=template.render(url=request.url_for("owner_instructions", pkstr=str(instance.pk))),
+        body=template.render(
+            url=request.url_for("owner_instructions", pkstr=str(instance.pk)),
+            friendly_name=instance.tfinputs.get("server_name", "undefined"),
+        ),
     )
     try:
         await mailer.send_message(msg, template_name="order_ready_email.txt")
