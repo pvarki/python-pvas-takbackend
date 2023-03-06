@@ -14,10 +14,11 @@ from .views.instructions import INSTRUCTIONS_ROUTER
 from .views.clients import CLIENTS_ROUTER
 
 from . import models
+from . import __version__
 
 
 LOGGER = logging.getLogger(__name__)
-APP = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
+APP = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json", version=__version__)
 APP.mount("/static", StaticFiles(directory=str(STATIC_PATH)), name="static")
 APP.include_router(INSTRUCTIONS_ROUTER)
 APP.include_router(CALLBACKS_ROUTER)

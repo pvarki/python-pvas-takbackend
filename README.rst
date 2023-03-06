@@ -13,9 +13,14 @@ make sure our software works under docker.
 
 It's also a quick way to get started with a standard development environment::
 
+    export DOCKER_TAG_EXTRA="-dev"
     docker-compose -p takbackend -f docker-compose_local.yml -f docker-compose_local_reload.yml up
 
-Note that you need jwt.pub from the a11napi instance you're using to get your auth tokens (/api/v1/tokens/pubkey)
+Note that you need jwt.pub from the a11napi instance you're using to get your auth tokens (/api/v1/tokens/pubkey),
+when you need to apply migrations you need to rebuild the images::
+
+    export DOCKER_TAG_EXTRA="-dev"
+    docker-compose -p takbackend -f docker-compose_local.yml build
 
 
 SSH agent forwarding
