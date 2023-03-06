@@ -25,7 +25,7 @@ class TAKInstanceCreate(CreateBase):
             "Autogenerate ClientSequence with this prefix for this instance, see ClientSequenceCreate for details"
         ),
         nullable=True,
-        default=None,
+        default="KARJU",
         regex=r"^[a-zA-Z0-9_]{3,}$",
         example="FOX_",
     )

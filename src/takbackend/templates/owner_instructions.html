@@ -11,18 +11,18 @@
       <div class="container">
 
         <div class="box">
-          <h1>TAK OHJEET<br /><small>(owner)</small></h1>
+          <h1>TAK OHJEET<br /><small>(owner / {{ friendly_name }})</small></h1>
+          <h1 style="background: red; letter-spacing: 1px; font-size: 1rem; font-weight: 800; padding: 10px 0 10px 0;">TALLENNA TÄMÄN SIVUN OSOITE!</h1>
         </div>
 
         <div class="box">
           <h2>VIESTIPERUSTEET</h2>
-          <table class="table">
 
             {% for item in client_sequences_urls %}
 
               <h3">{{ item["prefix"] }}</h3>
               <div class="qr_box"><img src="data:image/webp;name={{ item["prefix"] }}.webp;base64,{{ create_qrcode_b64(item["url"] ) }}" /></div>
-              <a class="btn" href="{{ item["url"] }}">Kopioi jakolinkki</a>
+              <a class="btn" onclick="navigator.clipboard.writeText(this.attributes.href.value); return false;" href="{{ item["url"] }}">Kopioi jakolinkki</a>
 
             {% endfor %}
 
