@@ -5,29 +5,32 @@ import logging
 
 import pendulum
 import aiohttp
+from aiohttp.client_exceptions import ClientError
 from fastapi import APIRouter, HTTPException, Request
 from starlette import status
 from arkia11napi.helpers import get_or_404
 from fastapi_mail import MessageSchema, MessageType
 from jinja2 import Environment, FileSystemLoader
 
+
 from ..models import TAKInstance
 from ..mailer import singleton as getmailer
 from ..config import TEMPLATES_PATH, ORDER_READY_SUBJECT
 from ..schemas.instance import TAKDBInstance
+from ..certsapihelpers import ping_certsapi
 
 LOGGER = logging.getLogger(__name__)
 CALLBACKS_ROUTER = APIRouter()
+CERTAPI_PING_INTERVAL = 30
 
 
-async def send_ready_email(instance: TAKInstance, request: Request) -> None:
+async def queue_ready_email(instance: TAKInstance, request: Request) -> None:
     """Send the ready email"""
     instance.tfinputs = cast(Dict[str, Any], instance.tfinputs)
     instance.tfoutputs = cast(Dict[str, Any], instance.tfoutputs)
     template = Environment(loader=FileSystemLoader(TEMPLATES_PATH), autoescape=True).get_template(
         "order_ready_email.txt"
     )
-    mailer = getmailer()
     msg = MessageSchema(
         subject=ORDER_READY_SUBJECT,
         recipients=[instance.ready_email],
@@ -37,13 +40,22 @@ async def send_ready_email(instance: TAKInstance, request: Request) -> None:
             friendly_name=instance.tfinputs.get("server_name", "undefined"),
         ),
     )
-    try:
-        await mailer.send_message(msg, template_name="order_ready_email.txt")
-    except Exception as exc:  # pylint: disable=W0703
-        LOGGER.exception("mail delivery failure {}".format(exc))
+
+    async def send_when_pings(msg: MessageSchema, instance: TAKInstance) -> None:
+        """Ping certsapi and send the email when ping goes through"""
+        while not await ping_certsapi(instance):
+            LOGGER.debug("waiting for certsapi")
+            await asyncio.sleep(CERTAPI_PING_INTERVAL)
+        try:
+            mailer = getmailer()
+            await mailer.send_message(msg)
+        except Exception as exc:  # pylint: disable=W0703
+            LOGGER.exception("mail delivery failure {}".format(exc))
+
+    asyncio.create_task(send_when_pings(msg, instance), name="send_ready_email")
 
 
-async def do_ready_callback(instance: TAKInstance, request: Request) -> None:
+async def queue_ready_callback(instance: TAKInstance, request: Request) -> None:
     """Do the ready callback"""
     instance.tfinputs = cast(Dict[str, Any], instance.tfinputs)
     pdinstsrc = instance.to_dict()
@@ -54,13 +66,24 @@ async def do_ready_callback(instance: TAKInstance, request: Request) -> None:
     pdinst.owner_instructions = request.url_for("owner_instructions", pkstr=str(instance.pk))
     data_str = pdinst.json()
 
-    async with aiohttp.ClientSession() as session:
-        url = instance.ready_callback_url
-        LOGGER.debug("POSTing {} to {}".format(data_str, url))
-        async with session.post(url, data=data_str) as resp:
-            LOGGER.debug("Got response {}".format(resp))
-            if resp.status >= 400:
-                LOGGER.error("Got error from callback {}".format(resp))
+    async def do_when_pings(data_str: str, instance: TAKInstance) -> None:
+        """Ping certsapi and do the callback when ping goes through"""
+        while not await ping_certsapi(instance):
+            LOGGER.debug("waiting for certsapi")
+            await asyncio.sleep(CERTAPI_PING_INTERVAL)
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                url = instance.ready_callback_url
+                LOGGER.debug("POSTing {} to {}".format(data_str, url))
+                async with session.post(url, data=data_str) as resp:
+                    LOGGER.debug("Got response {}".format(resp))
+                    if resp.status >= 400:
+                        LOGGER.error("Got error from callback {}".format(resp))
+        except ClientError as exc:
+            LOGGER.exception("Callback failed {}".format(exc))
+
+    asyncio.create_task(do_when_pings(data_str, instance), name="do_ready_callback")
 
 
 @CALLBACKS_ROUTER.post(
@@ -76,8 +99,8 @@ async def terraform_callback(request: Request, pkstr: str, tfoutputs: Dict[str, 
 
     tasks: List[asyncio.Task[Any]] = []
     if instance.ready_email:
-        tasks.append(asyncio.create_task(send_ready_email(instance, request), name="send_ready_email"))
+        tasks.append(asyncio.create_task(queue_ready_email(instance, request), name="queue_ready_email"))
     if instance.ready_callback_url:
-        tasks.append(asyncio.create_task(do_ready_callback(instance, request), name="do_ready_callback"))
+        tasks.append(asyncio.create_task(queue_ready_callback(instance, request), name="queue_ready_callback"))
 
     await asyncio.gather(*tasks)
