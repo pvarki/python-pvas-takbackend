@@ -54,7 +54,7 @@ services:
       - 'db_data:/var/lib/postgresql/data'
 
   dbinit:
-    image: pvarki/takbackend:migrations
+    image: "pvarki/takbackend:migrations{{getenv "DOCKER_TAG_EXTRA" ""}}"
     build:
       context: .
       dockerfile: Dockerfile
@@ -68,7 +68,7 @@ services:
         condition: service_healthy
 
   api:
-    image: pvarki/takbackend:latest
+    image: "pvarki/takbackend:latest{{getenv "DOCKER_TAG_EXTRA" ""}}"
     build:
       context: .
       dockerfile: Dockerfile
