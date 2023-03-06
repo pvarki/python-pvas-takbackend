@@ -1,3 +1,13 @@
-Greetings,
+Hei!
 
-Your order for {{ friendly_name }} is now ready {{ url }}
+Olet aiemmin tilannut PVArki-palveluita, tilauksesi "{{ friendly_name }}" on nyt valmis ja käytettävissä.
+
+Pääset käyttämään Team Awareness Kit (TAK) -tilaustasi suoraan tästä linkistä: {{ url }}.
+
+Linkin takaa löytyy sivu, jonka avulla voit jaella TAKin joukoillesi, sekä tarvittavat käyttöohjeet.
+
+Kiitos, että käytät arjen välineitä ja PVArki-palvelua!
+
+Terveisin,
+
+PVArki-tiimi
