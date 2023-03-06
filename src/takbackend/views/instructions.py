@@ -6,6 +6,7 @@ import base64
 import tempfile
 
 import aiohttp
+from aiohttp.client_exceptions import ClientError
 from fastapi import APIRouter, Request, Response, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -32,10 +33,15 @@ INSTRUCTIONS_ROUTER = APIRouter()
 async def get_owner_instructions(request: Request, pkstr: str) -> Response:
     """Show instructions for the owner"""
     instance = await get_or_404(TAKInstance, pkstr)
+    retry_headers = {"Retry-After": "120"}
     if not instance.tfoutputs:
         if instance.tfcompleted:
             raise HTTPException(status_code=409, detail="Terraform information not available but pipeline completed")
-        raise HTTPException(status_code=501, detail="Terraform information not received yet")
+        raise HTTPException(status_code=501, detail="Terraform information not received yet", headers=retry_headers)
+    if not await ping_certsapi(instance):
+        raise HTTPException(
+            status_code=501, detail="TAK server is not yet fully up, try again in a few minutes", headers=retry_headers
+        )
 
     sequences = [
         {"prefix": seq.prefix, "url": request.url_for("get_next_client", pkstr=seq.pk)}
@@ -58,13 +64,35 @@ async def get_owner_instructions(request: Request, pkstr: str) -> Response:
     )
 
 
-async def get_or_create_client_zip(instance: TAKInstance, name: str, filepath: Path) -> bool:
-    """Get the given client to a temporary directory"""
+def _get_http_options(instance: TAKInstance) -> Tuple[str, Dict[str, str]]:
+    """get the api base and auth (etc headers"""
     instance.tfoutputs = cast(Dict[str, Any], instance.tfoutputs)
     bearer_token = instance.tfoutputs["cert_api_token"]["value"]
     dns_name = instance.tfoutputs["dns_name"]["value"]
     api_base = f"https://{dns_name}/api"
     headers = {"Authorization": f"Bearer {bearer_token}"}
+    return api_base, headers
+
+
+async def ping_certsapi(instance: TAKInstance) -> bool:
+    """Check that certsapi is up"""
+    api_base, headers = _get_http_options(instance)
+    try:
+        async with aiohttp.ClientSession(headers=headers) as session:
+            url = f"{api_base}/v1"
+            LOGGER.debug("GETting {}".format(url))
+            async with session.get(url) as resp:
+                if resp.status == 200:
+                    return True
+    except ClientError as exc:
+        LOGGER.exception("exception {} while GETting {}".format(exc, url))
+
+    return False
+
+
+async def get_or_create_client_zip(instance: TAKInstance, name: str, filepath: Path) -> bool:
+    """Get the given client to a temporary directory"""
+    api_base, headers = _get_http_options(instance)
 
     async def get_client_zip(session: aiohttp.ClientSession) -> Optional[bytes]:
         """do the get, DRY"""
@@ -99,10 +127,15 @@ async def client_instructions_common(pkstr: str) -> Tuple[Client, TAKInstance]:
     """Dont' Repeat Yourself, the common stuff"""
     client = await get_or_404(Client, pkstr)
     instance = await TAKInstance.get(client.server)
+    retry_headers = {"Retry-After": "120"}
     if not instance.tfoutputs:
         if instance.tfcompleted:
             raise HTTPException(status_code=409, detail="Terraform information not available but pipeline completed")
-        raise HTTPException(status_code=501, detail="Terraform information not received yet")
+        raise HTTPException(status_code=501, detail="Terraform information not received yet", headers=retry_headers)
+    if not await ping_certsapi(instance):
+        raise HTTPException(
+            status_code=501, detail="TAK server is not yet fully up, try again in a few minutes", headers=retry_headers
+        )
 
     return client, instance
 
