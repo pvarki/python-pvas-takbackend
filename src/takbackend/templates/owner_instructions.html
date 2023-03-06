@@ -16,13 +16,12 @@
 
         <div class="box">
           <h2>VIESTIPERUSTEET</h2>
-          <table class="table">
 
             {% for item in client_sequences_urls %}
 
               <h3">{{ item["prefix"] }}</h3>
               <div class="qr_box"><img src="data:image/webp;name={{ item["prefix"] }}.webp;base64,{{ create_qrcode_b64(item["url"] ) }}" /></div>
-              <a class="btn" href="{{ item["url"] }}">Kopioi jakolinkki</a>
+              <a class="btn" onclick="navigator.clipboard.writeText(this.attributes.href.value); return false;" href="{{ item["url"] }}">Kopioi jakolinkki</a>
 
             {% endfor %}
 
