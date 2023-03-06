@@ -28,6 +28,7 @@ INSTANCE_ROUTER = APIRouter(dependencies=[Depends(JWTBearer(auto_error=True))])
 async def create_instance(request: Request, pdinstance: TAKInstanceCreate) -> TAKDBInstance:
     """Create a new TAKInstance"""
     check_acl(request.state.jwt, "fi.pvarki.takbackend.instance:create")
+    LOGGER.debug("pdinstance={}".format(pdinstance))
     # Default to email from JWT if not given
     if not pdinstance.ready_email:
         if "email" in request.state.jwt:
