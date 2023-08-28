@@ -72,9 +72,7 @@ services:
       dockerfile: Dockerfile
       target: production
     environment:
-      <<: *dbconfig_env
-      <<: *mailconfig_env
-      <<: *security_env
+      <<: [ *dbconfig_env, *mailconfig_env, *security_env ]
     volumes:
       - ./jwt.pub:/app/jwtRS256.pub
     depends_on:
